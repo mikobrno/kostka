@@ -127,6 +127,109 @@ export const EmployerInfo: React.FC<EmployerInfoProps> = ({ data, onChange }) =>
           <CopyButton text={data.netIncome || ''} />
         </div>
       </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Pracovní pozice dle smlouvy
+        </label>
+        <div className="flex">
+          <input
+            type="text"
+            value={data.jobPosition || ''}
+            onChange={(e) => updateField('jobPosition', e.target.value)}
+            className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            placeholder="Manažer, Programátor, Účetní..."
+          />
+          <CopyButton text={data.jobPosition || ''} />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Smlouva na dobu
+        </label>
+        <div className="flex">
+          <select
+            value={data.contractType || ''}
+            onChange={(e) => updateField('contractType', e.target.value)}
+            className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          >
+            <option value="">Vyberte typ smlouvy</option>
+            <option value="určitou">Určitou</option>
+            <option value="neurčitou">Neurčitou</option>
+          </select>
+          <CopyButton text={data.contractType || ''} />
+        </div>
+      </div>
+
+      {data.contractType === 'určitou' && (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Doba určitá od
+              </label>
+              <div className="flex">
+                <input
+                  type="date"
+                  value={data.contractFromDate || ''}
+                  onChange={(e) => updateField('contractFromDate', e.target.value)}
+                  className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+                <CopyButton text={data.contractFromDate || ''} />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Doba určitá do
+              </label>
+              <div className="flex">
+                <input
+                  type="date"
+                  value={data.contractToDate || ''}
+                  onChange={(e) => updateField('contractToDate', e.target.value)}
+                  className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+                <CopyButton text={data.contractToDate || ''} />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Doba určitá - prodlouženo?
+            </label>
+            <div className="flex">
+              <select
+                value={data.contractExtended || ''}
+                onChange={(e) => updateField('contractExtended', e.target.value)}
+                className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              >
+                <option value="">Vyberte možnost</option>
+                <option value="ano">Ano</option>
+                <option value="ne">Ne</option>
+              </select>
+              <CopyButton text={data.contractExtended || ''} />
+            </div>
+          </div>
+        </>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Zaměstnán od
+        </label>
+        <div className="flex">
+          <input
+            type="date"
+            value={data.employedSince || ''}
+            onChange={(e) => updateField('employedSince', e.target.value)}
+            className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          />
+          <CopyButton text={data.employedSince || ''} />
+        </div>
+      </div>
     </div>
   );
 };

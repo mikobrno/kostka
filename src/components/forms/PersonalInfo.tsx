@@ -3,7 +3,7 @@ import { AdminService } from '../../services/adminService';
 import { CopyButton } from '../CopyButton';
 import { AddressInput } from '../AddressInput';
 import { ChildrenManager } from '../ChildrenManager';
-import { Copy, Calendar, User } from 'lucide-react';
+import { Copy, Calendar, User, Plus, Trash2 } from 'lucide-react';
 
 interface PersonalInfoProps {
   data: any;
@@ -370,6 +370,163 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
       </div>
 
       <div>
+        <div className="flex items-center space-x-3 mb-4">
+          <h4 className="text-md font-medium text-gray-900">Doklady totožnosti</h4>
+          <button
+            onClick={() => {
+              const newDocument = {
+                id: Date.now(),
+                documentType: '',
+                documentNumber: '',
+                documentIssueDate: '',
+                documentValidUntil: '',
+                issuingAuthority: '',
+                placeOfBirth: '',
+                controlNumber: ''
+              };
+              const currentDocuments = data.documents || [];
+              updateField('documents', [...currentDocuments, newDocument]);
+            }}
+            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Přidat doklad
+          </button>
+        </div>
+        
+        {(data.documents || []).map((document, index) => (
+          <div key={document.id} className="bg-gray-50 rounded-lg p-4 border mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <h5 className="text-sm font-medium text-gray-900">
+                Doklad #{index + 1}
+              </h5>
+              {(data.documents || []).length > 1 && (
+                <button
+                  onClick={() => {
+                    const updatedDocuments = (data.documents || []).filter(d => d.id !== document.id);
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="text-red-600 hover:text-red-800 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Typ dokladu
+                </label>
+                <select
+                  value={document.documentType || ''}
+                  onChange={(e) => {
+                    const updatedDocuments = (data.documents || []).map(d => 
+                      d.id === document.id ? { ...d, documentType: e.target.value } : d
+                    );
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                >
+                  <option value="">Vyberte typ</option>
+                  {adminLists.documentTypes.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Číslo dokladu
+                </label>
+                <input
+                  type="text"
+                  value={document.documentNumber || ''}
+                  onChange={(e) => {
+                    const updatedDocuments = (data.documents || []).map(d => 
+                      d.id === document.id ? { ...d, documentNumber: e.target.value } : d
+                    );
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="Číslo dokladu"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Datum vydání
+                </label>
+                <input
+                  type="date"
+                  value={document.documentIssueDate || ''}
+                  onChange={(e) => {
+                    const updatedDocuments = (data.documents || []).map(d => 
+                      d.id === document.id ? { ...d, documentIssueDate: e.target.value } : d
+                    );
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Vydáno kým
+                </label>
+                <input
+                  type="text"
+                  value={document.issuingAuthority || ''}
+                  onChange={(e) => {
+                    const updatedDocuments = (data.documents || []).map(d => 
+                      d.id === document.id ? { ...d, issuingAuthority: e.target.value } : d
+                    );
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="Magistrát města Brna"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Místo narození
+                </label>
+                <input
+                  type="text"
+                  value={document.placeOfBirth || ''}
+                  onChange={(e) => {
+                    const updatedDocuments = (data.documents || []).map(d => 
+                      d.id === document.id ? { ...d, placeOfBirth: e.target.value } : d
+                    );
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="Praha"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Kontrolní číslo OP
+                </label>
+                <input
+                  type="text"
+                  value={document.controlNumber || ''}
+                  onChange={(e) => {
+                    const updatedDocuments = (data.documents || []).map(d => 
+                      d.id === document.id ? { ...d, controlNumber: e.target.value } : d
+                    );
+                    updateField('documents', updatedDocuments);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="ABC123"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+        
         <div className="flex items-center space-x-3 mb-4">
           <input
             type="checkbox"
