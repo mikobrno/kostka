@@ -39,10 +39,9 @@ export const AddressInput: React.FC<AddressInputProps> = ({
       // Volání Mapy.cz Fulltext Search API
       // Dokumentace: https://api.mapy.cz/doc/api/fulltextsearch/
       const response = await fetch(
-  `https://api.mapy.cz/fulltext/suggest?query=${encodeURIComponent(query)}&type=addr&key=${VITE_MAPY_CZ_API_KEY}`
+  `https://api.mapy.cz/fulltext/suggest?query=${encodeURIComponent(query)}&type=addr&key=${import.meta.env.VITE_MAPY_CZ_API_KEY}`
 );
-
-      
+   
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
