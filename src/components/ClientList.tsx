@@ -263,6 +263,19 @@ export const ClientList: React.FC<ClientListProps> = ({ onSelectClient }) => {
             </table>
           )}
         </div>
+        
+        {filteredClients.length > 0 && (
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div className="flex items-center justify-between text-sm text-gray-500">
+              <span>
+                Zobrazeno {filteredClients.length} z {clients.length} klientů
+              </span>
+              <span>
+                Poslední aktualizace: {new Date().toLocaleTimeString('cs-CZ')}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

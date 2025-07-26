@@ -11,6 +11,7 @@ function App() {
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('clients');
   const [selectedClient, setSelectedClient] = useState(null);
+  const [showClientForm, setShowClientForm] = useState(false);
 
   if (loading) {
     return (
@@ -33,7 +34,24 @@ function App() {
 
   const handleSelectClient = (client) => {
     setSelectedClient(client);
-    setActiveTab('clients'); // Přepnout na formulář s načtenými daty
+    setShowClientForm(true);
+  };
+
+  const handleNewClient = () => {
+    setSelectedClient(null);
+    setShowClientForm(true);
+  };
+
+  const handleCloseClientForm = () => {
+    setShowClientForm(false);
+    setSelectedClient(null);
+  };
+
+  const handleClientSaved = () => {
+    // Obnovit seznam klientů pokud je aktivní
+    if (activeTab === 'clientList') {
+      // ClientList komponenta se sama obnoví díky useEffect
+    }
   };
 
   const handleSignOut = async () => {
@@ -91,8 +109,37 @@ function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'clients' && <ClientForm selectedClient={selectedClient} />}
-        {activeTab === 'clientList' && <ClientList onSelectClient={handleSelectClient} />}
+        {showClientForm ? (
+          <ClientForm 
+            selectedClient={selectedClient} 
+            onClientSaved={handleClientSaved}
+            onClose={handleCloseClientForm}
+          />
+        ) : (
+          <>
+            {activeTab === 'clients' && (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Vytvořit nového klienta
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Začněte vytvořením nového klientského záznamu
+                  </p>
+                  <button
+                    onClick={handleNewClient}
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Nový klient
+                  </button>
+                </div>
+              </div>
+            )}
+            {activeTab === 'clientList' && <ClientList onSelectClient={handleSelectClient} />}
+          </>
+        )}
         {activeTab === 'calculator' && <MortgageCalculator />}
         {activeTab === 'admin' && <AdminPanel />}
       </main>

@@ -4,13 +4,15 @@ import { PersonalInfo } from './forms/PersonalInfo';
 import { EmployerInfo } from './forms/EmployerInfo';
 import { LiabilitiesInfo } from './forms/LiabilitiesInfo';
 import { PropertyInfo } from './forms/PropertyInfo';
-import { Save, Download, Plus } from 'lucide-react';
+import { Save, Download, Plus, Eye, X, FileText } from 'lucide-react';
 
 interface ClientFormProps {
   selectedClient?: any;
+  onClientSaved?: () => void;
+  onClose?: () => void;
 }
 
-export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient }) => {
+export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClientSaved, onClose }) => {
   const [formData, setFormData] = useState({
     applicant: {},
     coApplicant: {},
@@ -19,88 +21,90 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient }) => {
     property: {}
   });
   const [saving, setSaving] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [currentClient, setCurrentClient] = useState(selectedClient);
 
   // Načtení dat vybraného klienta do formuláře
   React.useEffect(() => {
-    if (selectedClient) {
+    if (selectedClient || currentClient) {
+      const client = selectedClient || currentClient;
       setFormData({
         applicant: {
-          title: selectedClient.applicant_title || '',
-          firstName: selectedClient.applicant_firstName || '',
-          lastName: selectedClient.applicant_lastName || '',
-          birthNumber: selectedClient.applicant_birthNumber || '',
-          age: selectedClient.applicant_age || '',
-          maritalStatus: selectedClient.applicant_maritalStatus || '',
-          permanentAddress: selectedClient.applicant_permanentAddress || '',
-          contactAddress: selectedClient.applicant_contactAddress || '',
-          documentType: selectedClient.applicant_documentType || '',
-          documentNumber: selectedClient.applicant_documentNumber || '',
-          documentIssueDate: selectedClient.applicant_documentIssueDate || '',
-          documentValidUntil: selectedClient.applicant_documentValidUntil || '',
-          phone: selectedClient.applicant_phone || '',
-          email: selectedClient.applicant_email || '',
-          bank: selectedClient.applicant_bank || '',
-          children: selectedClient.applicant_children ? JSON.parse(selectedClient.applicant_children) : []
+          title: client.applicant_title || '',
+          firstName: client.applicant_first_name || '',
+          lastName: client.applicant_last_name || '',
+          birthNumber: client.applicant_birth_number || '',
+          age: client.applicant_age || '',
+          maritalStatus: client.applicant_marital_status || '',
+          permanentAddress: client.applicant_permanent_address || '',
+          contactAddress: client.applicant_contact_address || '',
+          documentType: client.applicant_document_type || '',
+          documentNumber: client.applicant_document_number || '',
+          documentIssueDate: client.applicant_document_issue_date || '',
+          documentValidUntil: client.applicant_document_valid_until || '',
+          phone: client.applicant_phone || '',
+          email: client.applicant_email || '',
+          bank: client.applicant_bank || '',
+          children: client.children?.filter(c => c.parent_type === 'applicant') || []
         },
         coApplicant: {
-          title: selectedClient.coApplicant_title || '',
-          firstName: selectedClient.coApplicant_firstName || '',
-          lastName: selectedClient.coApplicant_lastName || '',
-          birthNumber: selectedClient.coApplicant_birthNumber || '',
-          age: selectedClient.coApplicant_age || '',
-          maritalStatus: selectedClient.coApplicant_maritalStatus || '',
-          permanentAddress: selectedClient.coApplicant_permanentAddress || '',
-          contactAddress: selectedClient.coApplicant_contactAddress || '',
-          documentType: selectedClient.coApplicant_documentType || '',
-          documentNumber: selectedClient.coApplicant_documentNumber || '',
-          documentIssueDate: selectedClient.coApplicant_documentIssueDate || '',
-          documentValidUntil: selectedClient.coApplicant_documentValidUntil || '',
-          phone: selectedClient.coApplicant_phone || '',
-          email: selectedClient.coApplicant_email || '',
-          bank: selectedClient.coApplicant_bank || '',
-          children: selectedClient.coApplicant_children ? JSON.parse(selectedClient.coApplicant_children) : []
+          title: client.co_applicant_title || '',
+          firstName: client.co_applicant_first_name || '',
+          lastName: client.co_applicant_last_name || '',
+          birthNumber: client.co_applicant_birth_number || '',
+          age: client.co_applicant_age || '',
+          maritalStatus: client.co_applicant_marital_status || '',
+          permanentAddress: client.co_applicant_permanent_address || '',
+          contactAddress: client.co_applicant_contact_address || '',
+          documentType: client.co_applicant_document_type || '',
+          documentNumber: client.co_applicant_document_number || '',
+          documentIssueDate: client.co_applicant_document_issue_date || '',
+          documentValidUntil: client.co_applicant_document_valid_until || '',
+          phone: client.co_applicant_phone || '',
+          email: client.co_applicant_email || '',
+          bank: client.co_applicant_bank || '',
+          children: client.children?.filter(c => c.parent_type === 'co_applicant') || []
         },
         employer: {
-          ico: selectedClient.employer_ico || '',
-          companyName: selectedClient.employer_companyName || '',
-          companyAddress: selectedClient.employer_companyAddress || '',
-          netIncome: selectedClient.employer_netIncome || ''
+          ico: client.employers?.[0]?.ico || '',
+          companyName: client.employers?.[0]?.company_name || '',
+          companyAddress: client.employers?.[0]?.company_address || '',
+          netIncome: client.employers?.[0]?.net_income || ''
         },
-        liabilities: selectedClient.liabilities ? JSON.parse(selectedClient.liabilities) : [],
+        liabilities: client.liabilities || [],
         property: {
-          address: selectedClient.property_address || '',
-          price: selectedClient.property_price || ''
+          address: client.properties?.[0]?.address || '',
+          price: client.properties?.[0]?.price || ''
         }
       });
     }
-  }, [selectedClient]);
+  }, [selectedClient, currentClient]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      if (selectedClient) {
+      if (selectedClient || currentClient) {
         // Aktualizace existujícího klienta
-        const { data, error } = await ClientService.updateClient(selectedClient.id, formData);
+        const clientId = selectedClient?.id || currentClient?.id;
+        const { data, error } = await ClientService.updateClient(clientId, formData);
         if (error) {
           throw new Error(error.message || 'Chyba při aktualizaci klienta');
         }
+        setCurrentClient(data);
         alert('Klient byl úspěšně aktualizován!');
+        onClientSaved?.();
       } else {
         // Vytvoření nového klienta
         const { data, error } = await ClientService.createClient(formData);
         if (error) {
           throw new Error(error.message || 'Chyba při vytváření klienta');
         }
+        setCurrentClient(data);
         alert('Klient byl úspěšně vytvořen!');
+        onClientSaved?.();
         
-        // Vyčištění formuláře po úspěšném vytvoření
-        setFormData({
-          applicant: {},
-          coApplicant: {},
-          employer: {},
-          liabilities: [],
-          property: {}
-        });
+        // Po vytvoření přepneme do editačního módu
+        // Formulář zůstane vyplněný pro další úpravy
       }
     } catch (error) {
       console.error('Chyba při ukládání:', error);
@@ -110,25 +114,91 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient }) => {
     }
   };
 
-  const handleExportPDF = () => {
-    // TODO: Implementovat export do PDF
-    alert('PDF bude vygenerováno!');
+  const handleExportPDF = async () => {
+    const { generateClientPDF } = await import('../utils/pdfGenerator');
+    const clientData = selectedClient || currentClient;
+    
+    if (!clientData) {
+      alert('Nejprve uložte klienta před generováním PDF');
+      return;
+    }
+    
+    try {
+      await generateClientPDF(clientData, formData);
+    } catch (error) {
+      console.error('Chyba při generování PDF:', error);
+      alert('Chyba při generování PDF');
+    }
   };
+
+  const handleNewClient = () => {
+    setCurrentClient(null);
+    setFormData({
+      applicant: {},
+      coApplicant: {},
+      employer: {},
+      liabilities: [],
+      property: {}
+    });
+    setShowPreview(false);
+  };
+
+  if (showPreview && (selectedClient || currentClient)) {
+    return (
+      <ClientPreview 
+        client={selectedClient || currentClient}
+        formData={formData}
+        onEdit={() => setShowPreview(false)}
+        onClose={onClose}
+        onExportPDF={handleExportPDF}
+      />
+    );
+  }
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {selectedClient ? 'Úprava klienta' : 'Nový klient'}
+            {selectedClient || currentClient ? 'Úprava klienta' : 'Nový klient'}
           </h1>
-          {selectedClient && (
+          {(selectedClient || currentClient) && (
             <p className="text-gray-600 mt-1">
-              {selectedClient.applicant_firstName} {selectedClient.applicant_lastName}
+              {formData.applicant.firstName} {formData.applicant.lastName}
             </p>
           )}
         </div>
-        <div className="flex space-x-3">
+        <div className="flex items-center space-x-3">
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Zavřít
+            </button>
+          )}
+          
+          {(selectedClient || currentClient) && (
+            <button
+              onClick={() => setShowPreview(true)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Náhled
+            </button>
+          )}
+          
+          {(selectedClient || currentClient) && (
+            <button
+              onClick={handleNewClient}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nový klient
+            </button>
+          )}
+          
           <button
             onClick={handleSave}
             disabled={saving}
@@ -139,13 +209,15 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient }) => {
             ) : (
               <Save className="w-4 h-4 mr-2" />
             )}
-            {saving ? 'Ukládám...' : (selectedClient ? 'Aktualizovat' : 'Uložit')}
+            {saving ? 'Ukládám...' : (selectedClient || currentClient ? 'Aktualizovat' : 'Uložit')}
           </button>
+          
           <button
             onClick={handleExportPDF}
+            disabled={!selectedClient && !currentClient}
             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <FileText className="w-4 h-4 mr-2" />
             Export PDF
           </button>
         </div>
@@ -214,6 +286,316 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient }) => {
           onChange={(data) => setFormData(prev => ({ ...prev, liabilities: data }))}
         />
       </div>
+    </div>
+  );
+};
+
+// Komponenta pro náhled klienta
+interface ClientPreviewProps {
+  client: any;
+  formData: any;
+  onEdit: () => void;
+  onClose?: () => void;
+  onExportPDF: () => void;
+}
+
+const ClientPreview: React.FC<ClientPreviewProps> = ({ 
+  client, 
+  formData, 
+  onEdit, 
+  onClose, 
+  onExportPDF 
+}) => {
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Neuvedeno';
+    try {
+      return new Date(dateString).toLocaleDateString('cs-CZ');
+    } catch {
+      return 'Neplatné datum';
+    }
+  };
+
+  const formatPrice = (price: number) => {
+    if (!price) return 'Neuvedeno';
+    return price.toLocaleString('cs-CZ') + ' Kč';
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Náhled klienta</h1>
+          <p className="text-gray-600 mt-1">
+            {formData.applicant.firstName} {formData.applicant.lastName}
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            >
+              <X className="w-4 h-4 mr-2" />
+              Zavřít
+            </button>
+          )}
+          
+          <button
+            onClick={onEdit}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Upravit
+          </button>
+          
+          <button
+            onClick={onExportPDF}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Export PDF
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Žadatel */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Žadatel
+          </h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Jméno:</span>
+                <p className="text-gray-900">{formData.applicant.title} {formData.applicant.firstName} {formData.applicant.lastName}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Rodné číslo:</span>
+                <p className="text-gray-900">{formData.applicant.birthNumber || 'Neuvedeno'}</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Věk:</span>
+                <p className="text-gray-900">{formData.applicant.age ? `${formData.applicant.age} let` : 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Rodinný stav:</span>
+                <p className="text-gray-900">{formData.applicant.maritalStatus || 'Neuvedeno'}</p>
+              </div>
+            </div>
+            
+            <div>
+              <span className="text-sm font-medium text-gray-500">Trvalé bydliště:</span>
+              <p className="text-gray-900">{formData.applicant.permanentAddress || 'Neuvedeno'}</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Telefon:</span>
+                <p className="text-gray-900">{formData.applicant.phone || 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Email:</span>
+                <p className="text-gray-900">{formData.applicant.email || 'Neuvedeno'}</p>
+              </div>
+            </div>
+            
+            <div>
+              <span className="text-sm font-medium text-gray-500">Banka:</span>
+              <p className="text-gray-900">{formData.applicant.bank || 'Neuvedeno'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Spolužadatel */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Spolužadatel
+          </h2>
+          {formData.coApplicant.firstName ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Jméno:</span>
+                  <p className="text-gray-900">{formData.coApplicant.title} {formData.coApplicant.firstName} {formData.coApplicant.lastName}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Rodné číslo:</span>
+                  <p className="text-gray-900">{formData.coApplicant.birthNumber || 'Neuvedeno'}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Telefon:</span>
+                  <p className="text-gray-900">{formData.coApplicant.phone || 'Neuvedeno'}</p>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Email:</span>
+                  <p className="text-gray-900">{formData.coApplicant.email || 'Neuvedeno'}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Spolužadatel nebyl zadán</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Zaměstnavatel */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Zaměstnavatel
+          </h2>
+          {formData.employer.companyName ? (
+            <div className="space-y-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Název firmy:</span>
+                <p className="text-gray-900">{formData.employer.companyName}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">IČO:</span>
+                <p className="text-gray-900">{formData.employer.ico || 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Adresa:</span>
+                <p className="text-gray-900">{formData.employer.companyAddress || 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Čistý příjem:</span>
+                <p className="text-gray-900">{formData.employer.netIncome ? formatPrice(formData.employer.netIncome) : 'Neuvedeno'}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Zaměstnavatel nebyl zadán</p>
+          )}
+        </div>
+
+        {/* Nemovitost */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Nemovitost
+          </h2>
+          {formData.property.address ? (
+            <div className="space-y-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Adresa:</span>
+                <p className="text-gray-900">{formData.property.address}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Kupní cena:</span>
+                <p className="text-gray-900 text-lg font-semibold text-green-600">
+                  {formData.property.price ? formatPrice(formData.property.price) : 'Neuvedeno'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Nemovitost nebyla zadána</p>
+          )}
+        </div>
+      </div>
+
+      {/* Závazky */}
+      {formData.liabilities && formData.liabilities.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Závazky
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Instituce
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Typ
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Výše úvěru
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Splátka
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Zůstatek
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {formData.liabilities.map((liability, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {liability.institution || 'Neuvedeno'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {liability.type || 'Neuvedeno'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {liability.amount ? formatPrice(liability.amount) : 'Neuvedeno'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {liability.payment ? formatPrice(liability.payment) : 'Neuvedeno'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {liability.balance ? formatPrice(liability.balance) : 'Neuvedeno'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Děti */}
+      {((formData.applicant.children && formData.applicant.children.length > 0) || 
+        (formData.coApplicant.children && formData.coApplicant.children.length > 0)) && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Děti
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {formData.applicant.children && formData.applicant.children.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Děti žadatele</h3>
+                <div className="space-y-2">
+                  {formData.applicant.children.map((child, index) => (
+                    <div key={index} className="bg-blue-50 rounded-lg p-3">
+                      <p className="font-medium text-blue-900">{child.name}</p>
+                      <p className="text-sm text-blue-700">
+                        {child.birthDate ? formatDate(child.birthDate) : 'Datum narození neuvedeno'}
+                        {child.age && ` (${child.age} let)`}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {formData.coApplicant.children && formData.coApplicant.children.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Děti spolužadatele</h3>
+                <div className="space-y-2">
+                  {formData.coApplicant.children.map((child, index) => (
+                    <div key={index} className="bg-green-50 rounded-lg p-3">
+                      <p className="font-medium text-green-900">{child.name}</p>
+                      <p className="text-sm text-green-700">
+                        {child.birthDate ? formatDate(child.birthDate) : 'Datum narození neuvedeno'}
+                        {child.age && ` (${child.age} let)`}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
