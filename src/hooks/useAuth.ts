@@ -8,8 +8,15 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true;
+    
     // Získání aktuální session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      
+      if (error) {
+        console.error('Auth session error:', error);
+      }
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
@@ -18,13 +25,19 @@ export function useAuth() {
     // Naslouchání změnám autentizace
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      
+      console.log('Auth state change:', event, session?.user?.email);
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    }
   }, [])
 
   const signUp = async (email: string, password: string) => {

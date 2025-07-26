@@ -9,7 +9,7 @@ import { FileText, Calculator, Settings, Users, LogOut, Plus } from 'lucide-reac
 
 function App() {
   const { user, loading, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState('clients');
+  const [activeTab, setActiveTab] = useState('clientList');
   const [selectedClient, setSelectedClient] = useState(null);
   const [showClientForm, setShowClientForm] = useState(false);
 
@@ -26,7 +26,7 @@ function App() {
   }
 
   const tabs = [
-    { id: 'clients', label: 'Nový klient', icon: FileText },
+    { id: 'newClient', label: 'Nový klient', icon: FileText },
     { id: 'clientList', label: 'Seznam klientů', icon: Users },
     { id: 'calculator', label: 'Hypoteční kalkulačka', icon: Calculator },
     { id: 'admin', label: 'Administrace', icon: Settings },
@@ -34,6 +34,12 @@ function App() {
 
   const handleSelectClient = (client) => {
     setSelectedClient(client);
+    setActiveTab('newClient');
+    setShowClientForm(true);
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
     setShowClientForm(true);
   };
 
@@ -45,10 +51,16 @@ function App() {
   const handleCloseClientForm = () => {
     setShowClientForm(false);
     setSelectedClient(null);
+    setActiveTab('clientList');
   };
 
   const handleClientSaved = () => {
-    // Obnovit seznam klientů pokud je aktivní
+    setShowClientForm(false);
+    setSelectedClient(null);
+    setActiveTab('clientList');
+  };
+
+  const handleClientListRefresh = () => {
     if (activeTab === 'clientList') {
       // ClientList komponenta se sama obnoví díky useEffect
     }
@@ -57,6 +69,7 @@ function App() {
   const handleSignOut = async () => {
     await signOut();
   };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -93,7 +106,7 @@ function App() {
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
-                onClick={() => setActiveTab(id)}
+                onClick={() => handleTabChange(id)}
                 className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === id
                     ? 'border-blue-500 text-blue-600'
@@ -109,7 +122,7 @@ function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {showClientForm ? (
+        {(showClientForm || activeTab === 'newClient') ? (
           <ClientForm 
             selectedClient={selectedClient} 
             onClientSaved={handleClientSaved}
@@ -117,7 +130,7 @@ function App() {
           />
         ) : (
           <>
-            {activeTab === 'clients' && (
+            {activeTab === 'newClient' && !showClientForm && (
               <div className="text-center py-12">
                 <div className="max-w-md mx-auto">
                   <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -137,11 +150,13 @@ function App() {
                 </div>
               </div>
             )}
-            {activeTab === 'clientList' && <ClientList onSelectClient={handleSelectClient} />}
+            {activeTab === 'clientList' && (
+              <ClientList onSelectClient={handleSelectClient} />
+            )}
+            {activeTab === 'calculator' && <MortgageCalculator />}
+            {activeTab === 'admin' && <AdminPanel />}
           </>
         )}
-        {activeTab === 'calculator' && <MortgageCalculator />}
-        {activeTab === 'admin' && <AdminPanel />}
       </main>
     </div>
   );

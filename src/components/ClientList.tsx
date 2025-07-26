@@ -22,7 +22,10 @@ export const ClientList: React.FC<ClientListProps> = ({ onSelectClient }) => {
       const { data, error } = await ClientService.getClients();
       
       if (error) {
-        throw new Error(error.message || 'Chyba při načítání klientů');
+        console.error('Supabase error:', error);
+        setError(`Chyba při načítání klientů: ${error.message || 'Neznámá chyba'}`);
+        setClients([]);
+        return;
       }
       
       console.log('📥 Přijatá data ze Supabase:', data);
@@ -30,7 +33,7 @@ export const ClientList: React.FC<ClientListProps> = ({ onSelectClient }) => {
       setClients(data || []);
     } catch (error) {
       console.error('Chyba při načítání klientů:', error);
-      setError(`Chyba při načítání klientů: ${error.message}`);
+      setError(`Chyba při načítání klientů: ${error?.message || 'Neočekávaná chyba'}`);
       setClients([]);
     } finally {
       console.log('✅ Načítání dokončeno');
@@ -39,6 +42,11 @@ export const ClientList: React.FC<ClientListProps> = ({ onSelectClient }) => {
   };
 
   useEffect(() => {
+    // Kontrola připojení k Supabase
+    if (!window.location.hostname.includes('localhost') && !process.env.VITE_SUPABASE_URL) {
+      setError('Aplikace není správně nakonfigurována pro Supabase');
+      return;
+    }
     loadClients();
   }, []);
 
@@ -135,7 +143,10 @@ export const ClientList: React.FC<ClientListProps> = ({ onSelectClient }) => {
             <div className="flex">
               <div className="ml-3">
                 <p className="text-sm text-yellow-700">
-                  {error}
+                  ⚠️ {error}
+                </p>
+                <p className="text-xs text-yellow-600 mt-1">
+                  Zkuste obnovit stránku nebo kontaktujte podporu.
                 </p>
               </div>
             </div>

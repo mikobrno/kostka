@@ -251,6 +251,13 @@ export class ClientService {
 
   static async getClients(): Promise<{ data: any[] | null; error: any }> {
     try {
+      // Kontrola připojení k Supabase
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError) {
+        console.error('User auth error:', userError);
+        return { data: null, error: userError }
+      }
+      
       const { data, error } = await supabase
         .from('clients')
         .select(`
@@ -262,8 +269,14 @@ export class ClientService {
         `)
         .order('created_at', { ascending: false })
 
+      if (error) {
+        console.error('Supabase query error:', error);
+        return { data: null, error };
+      }
+
       return { data, error }
     } catch (error) {
+      console.error('Client service error:', error);
       return { data: null, error }
     }
   }
