@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { CopyButton } from './CopyButton';
 import { MapPin } from 'lucide-react';
 
@@ -20,32 +20,48 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const mockAddresses = [
-    'Václavské náměstí 1, Praha 1',
-    'Národní třída 25, Praha 1',
-    'Wenceslas Square 1, Prague 1',
-    'Charles Square 2, Prague 2',
-    'Old Town Square 1, Prague 1'
-  ];
+  // Získání API klíče z proměnných prostředí Vite
+  const MAPY_CZ_API_KEY = import.meta.env.VITE_MAPY_CZ_API_KEY;
 
-  const searchAddresses = async (query: string) => {
+  const searchAddresses = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
       return;
     }
 
+    if (!MAPY_CZ_API_KEY) {
+      console.error('Missing Mapy.cz API key. Please add VITE_MAPY_CZ_API_KEY to your .env file.');
+      return;
+    }
+
     setLoading(true);
-    
-    // Mock API call - v produkci nahradit Mapy.cz API
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const filtered = mockAddresses.filter(addr => 
-      addr.toLowerCase().includes(query.toLowerCase())
-    );
-    
-    setSuggestions(filtered);
-    setLoading(false);
-  };
+    try {
+      // Volání Mapy.cz Fulltext Search API
+      // Dokumentace: https://api.mapy.cz/doc/api/fulltextsearch/
+      const response = await fetch(
+        `https://api.mapy.cz/vstupy/?vstup=${encodeURIComponent(query)}&output=json&key=${MAPY_CZ_API_KEY}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Zpracování dat a extrakce adres
+      if (data && data.data && Array.isArray(data.data)) {
+        const newSuggestions = data.data.map((item: any) => item.label);
+        setSuggestions(newSuggestions);
+      } else {
+        setSuggestions([]);
+      }
+    } catch (error) {
+      console.error('Chyba při načítání adres z Mapy.cz API:', error);
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [MAPY_CZ_API_KEY]); // Závislost na API klíči
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -55,7 +71,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [value]);
+  }, [value, searchAddresses]); // Přidáno searchAddresses do závislostí
 
   const handleInputChange = (newValue: string) => {
     onChange(newValue);
@@ -92,11 +108,14 @@ export const AddressInput: React.FC<AddressInputProps> = ({
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((suggestion, index) => (
             <button
               key={index}
-              onClick={() => selectSuggestion(suggestion)}
+              onMouseDown={(e) => { // Použito onMouseDown pro zamezení blur události před kliknutím
+                e.preventDefault(); 
+                selectSuggestion(suggestion);
+              }}
               className="w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors first:rounded-t-md last:rounded-b-md"
             >
               <div className="flex items-center">
