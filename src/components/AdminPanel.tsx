@@ -37,6 +37,10 @@ export const AdminPanel: React.FC = () => {
       name: 'Občanství',
       items: ['Česká republika', 'Slovenská republika', 'Německo', 'Rakousko', 'Polsko', 'Maďarsko', 'Ukrajina', 'Rusko', 'Jiné']
     },
+    advisors: {
+      name: 'Doporučitelé',
+      items: ['Jan Novák - 12345', 'Marie Svobodová - 67890', 'Petr Dvořák - 54321']
+    },
     housingTypes: {
       name: 'Druhy bydlení',
       items: ['vlastní byt', 'vlastní dům', 'nájemní byt', 'nájemní dům', 'družstevní byt', 'služební byt', 'u rodičů/příbuzných', 'jiné']

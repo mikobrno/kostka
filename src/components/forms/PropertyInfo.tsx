@@ -1,33 +1,32 @@
 import React from 'react';
 import { CopyButton } from '../CopyButton';
-import { AddressInput } from '../AddressInput';
-import { MapPin, DollarSign } from 'lucide-react';
+import { AddressWithMapLinks } from '../AddressWithMapLinks';
+import { MapPin } from 'lucide-react';
 
 interface PropertyInfoProps {
   data: any;
   onChange: (data: any) => void;
+  title?: string;
 }
 
-export const PropertyInfo: React.FC<PropertyInfoProps> = ({ data, onChange }) => {
+export const PropertyInfo: React.FC<PropertyInfoProps> = ({ data, onChange, title = "Nemovitost" }) => {
   const updateField = (field: string, value: any) => {
     onChange({ ...data, [field]: value });
   };
 
   return (
     <div className="space-y-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">{title}</h3>
+      
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Adresa nemovitosti
         </label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400 z-10" />
-          <AddressInput
-            value={data.address || ''}
-            onChange={(value) => updateField('address', value)}
-            placeholder="Adresa nemovitosti"
-            className="pl-10"
-          />
-        </div>
+        <AddressWithMapLinks
+          value={data.address || ''}
+          onChange={(value) => updateField('address', value)}
+          placeholder="Adresa nemovitosti"
+        />
       </div>
 
       <div>
@@ -36,12 +35,12 @@ export const PropertyInfo: React.FC<PropertyInfoProps> = ({ data, onChange }) =>
         </label>
         <div className="flex">
           <div className="flex-1 relative">
-            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm font-medium">Kč</span>
             <input
               type="number"
               value={data.price || ''}
               onChange={(e) => updateField('price', e.target.value)}
-              className="block w-full pl-10 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              className="block w-full pl-8 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
               placeholder="2000000"
               min="0"
             />

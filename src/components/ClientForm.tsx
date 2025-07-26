@@ -4,6 +4,7 @@ import { PersonalInfo } from './forms/PersonalInfo';
 import { EmployerInfo } from './forms/EmployerInfo';
 import { LiabilitiesInfo } from './forms/LiabilitiesInfo';
 import { PropertyInfo } from './forms/PropertyInfo';
+import { LoanSection } from './forms/LoanSection';
 import { Save, Download, Plus, Eye, X, FileText } from 'lucide-react';
 
 interface ClientFormProps {
@@ -19,7 +20,9 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
     applicantEmployer: {},
     coApplicantEmployer: {},
     liabilities: [],
-    property: {}
+    applicantProperty: {},
+    coApplicantProperty: {},
+    loan: {}
   });
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -79,10 +82,31 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
           netIncome: client.employers?.[1]?.net_income || ''
         },
         liabilities: client.liabilities || [],
-        property: {
+        applicantProperty: {
           address: client.properties?.[0]?.address || '',
           price: client.properties?.[0]?.price || ''
-        }
+        },
+        coApplicantProperty: {
+          address: client.properties?.[1]?.address || '',
+          price: client.properties?.[1]?.price || ''
+        },
+        loan: {
+          bank: client.loan?.bank || '',
+          contractNumber: client.loan?.contract_number || '',
+          signatureDate: client.loan?.signature_date || '',
+          advisor: client.loan?.advisor || '',
+          loanAmount: client.loan?.loan_amount || '',
+          loanAmountWords: client.loan?.loan_amount_words || '',
+          fixationYears: client.loan?.fixation_years || '',
+          interestRate: client.loan?.interest_rate || '',
+          insurance: client.loan?.insurance || '',
+          propertyValue: client.loan?.property_value || '',
+        applicantEmployer: {},
+        coApplicantEmployer: {},
+          monthlyPayment: client.loan?.monthly_payment || ''
+        applicantProperty: {},
+        coApplicantProperty: {},
+        loan: {}
       });
     }
   }, [selectedClient, currentClient]);
@@ -282,14 +306,28 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
-            Nemovitost
-          </h2>
           <PropertyInfo 
-            data={formData.property}
-            onChange={(data) => setFormData(prev => ({ ...prev, property: data }))}
+            data={formData.applicantProperty}
+            onChange={(data) => setFormData(prev => ({ ...prev, applicantProperty: data }))}
+            title="Nemovitost žadatele"
           />
         </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <PropertyInfo 
+            data={formData.coApplicantProperty}
+            onChange={(data) => setFormData(prev => ({ ...prev, coApplicantProperty: data }))}
+            title="Nemovitost spolužadatele"
+          />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-6">
+        <LoanSection 
+          data={formData.loan}
+          onChange={(data) => setFormData(prev => ({ ...prev, loan: data }))}
+          propertyPrice={formData.applicantProperty.price || formData.coApplicantProperty.price}
+        />
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
@@ -528,23 +566,77 @@ const ClientPreview: React.FC<ClientPreviewProps> = ({
         {/* Nemovitost */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
-            Nemovitost
+            Nemovitosti
           </h2>
-          {formData.property.address ? (
+          {(formData.applicantProperty.address || formData.coApplicantProperty.address) ? (
             <div className="space-y-4">
+              {formData.applicantProperty.address && (
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">Nemovitost žadatele</h4>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Adresa:</span>
+                    <p className="text-gray-900">{formData.applicantProperty.address}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Kupní cena:</span>
+                    <p className="text-gray-900 text-lg font-semibold text-green-600">
+                      {formData.applicantProperty.price ? formatPrice(formData.applicantProperty.price) : 'Neuvedeno'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {formData.coApplicantProperty.address && (
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h4 className="font-medium text-green-900 mb-2">Nemovitost spolužadatele</h4>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Adresa:</span>
+                    <p className="text-gray-900">{formData.coApplicantProperty.address}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Kupní cena:</span>
+                    <p className="text-gray-900 text-lg font-semibold text-green-600">
+                      {formData.coApplicantProperty.price ? formatPrice(formData.coApplicantProperty.price) : 'Neuvedeno'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Nemovitosti nebyly zadány</p>
+          )}
+        </div>
+
+        {/* Úvěr */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Úvěr
+          </h2>
+          {formData.loan.bank ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span className="text-sm font-medium text-gray-500">Adresa:</span>
-                <p className="text-gray-900">{formData.property.address}</p>
+                <span className="text-sm font-medium text-gray-500">Banka:</span>
+                <p className="text-gray-900">{formData.loan.bank}</p>
               </div>
               <div>
-                <span className="text-sm font-medium text-gray-500">Kupní cena:</span>
+                <span className="text-sm font-medium text-gray-500">Číslo smlouvy:</span>
+                <p className="text-gray-900">{formData.loan.contractNumber || 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Výše úvěru:</span>
                 <p className="text-gray-900 text-lg font-semibold text-green-600">
-                  {formData.property.price ? formatPrice(formData.property.price) : 'Neuvedeno'}
+                  {formData.loan.loanAmount ? formatPrice(formData.loan.loanAmount) : 'Neuvedeno'}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Měsíční splátka:</span>
+                <p className="text-gray-900 font-semibold">
+                  {formData.loan.monthlyPayment ? formatPrice(formData.loan.monthlyPayment) : 'Neuvedeno'}
                 </p>
               </div>
             </div>
           ) : (
-            <p className="text-gray-500 italic">Nemovitost nebyla zadána</p>
+            <p className="text-gray-500 italic">Úvěr nebyl zadán</p>
           )}
         </div>
       </div>
