@@ -38,9 +38,15 @@ export const AddressInput: React.FC<AddressInputProps> = ({
     try {
       // Volání Mapy.cz Fulltext Search API
       // Dokumentace: https://api.mapy.cz/doc/api/fulltextsearch/
-      const response = await fetch(
-  `https://api.mapy.cz/v1/geocode?query=${encodeURIComponent(query)}&type=regional.address&key=${import.meta.env.VITE_MAPY_CZ_API_KEY}`
-);
+      const API_KEY = import.meta.env.VITE_MAPY_CZ_API_KEY;
+
+L.tileLayer(
+  `https://api.mapy.cz/v1/maptiles/basic/256/{z}/{x}/{y}?apikey=${API_KEY}`,
+  {
+    minZoom: 0,
+    maxZoom: 19,
+  }
+).addTo(map);
    
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
