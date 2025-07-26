@@ -36,11 +36,8 @@ export const AddressInput: React.FC<AddressInputProps> = ({
 
     setLoading(true);
     try {
-      // Volání Mapy.cz Suggest API
-      // Dokumentace: https://api.mapy.cz/doc/api/suggest/
-      const response = await fetch(
-        `https://api.mapy.cz/v1/suggest?query=${encodeURIComponent(query)}&apikey=${MAPY_CZ_API_KEY}&type=regional.address&lang=cs&limit=5`
-      );
+      // Volání GoogleMaps Suggest API
+      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${API_KEY}`;
    
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
