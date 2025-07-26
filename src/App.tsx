@@ -5,7 +5,7 @@ import { ClientForm } from './components/ClientForm';
 import { ClientList } from './components/ClientList';
 import { MortgageCalculator } from './components/MortgageCalculator';
 import { AdminPanel } from './components/AdminPanel';
-import { FileText, Calculator, Settings, Users, LogOut } from 'lucide-react';
+import { FileText, Calculator, Settings, Users, LogOut, Plus } from 'lucide-react';
 
 function App() {
   const { user, loading, signOut } = useAuth();
