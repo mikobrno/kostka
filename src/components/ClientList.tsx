@@ -43,7 +43,7 @@ export const ClientList: React.FC<ClientListProps> = ({ onSelectClient }) => {
 
   useEffect(() => {
     // Kontrola připojení k Supabase
-    if (!window.location.hostname.includes('localhost') && !process.env.VITE_SUPABASE_URL) {
+    if (!window.location.hostname.includes('localhost') && !import.meta.env.VITE_SUPABASE_URL) {
       setError('Aplikace není správně nakonfigurována pro Supabase');
       return;
     }
