@@ -7,8 +7,9 @@ export const AdminPanel: React.FC = () => {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newItem, setNewItem] = useState('');
   const [loading, setLoading] = useState(false);
+  const [managedLists, setManagedLists] = useState({});
 
-  const lists = {
+  const defaultLists = {
     titles: {
       name: 'Tituly',
       items: ['Bc.', 'Mgr.', 'Ing.', 'MUDr.', 'JUDr.', 'PhDr.', 'RNDr.', 'Dr.']
@@ -47,10 +48,10 @@ export const AdminPanel: React.FC = () => {
     }
   };
 
-  const [managedLists, setManagedLists] = useState(lists);
-
   // Načtení dat ze Supabase při načtení komponenty
   React.useEffect(() => {
+    // Inicializace s výchozími hodnotami
+    setManagedLists(defaultLists);
     loadAdminData();
   }, []);
 
@@ -64,7 +65,7 @@ export const AdminPanel: React.FC = () => {
       }
 
       if (data) {
-        const updatedLists = { ...lists };
+        const updatedLists = { ...defaultLists };
         data.forEach(item => {
           if (updatedLists[item.list_type]) {
             updatedLists[item.list_type].items = item.items;
@@ -139,7 +140,7 @@ export const AdminPanel: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
           <nav className="space-y-2">
-            {Object.entries(managedLists).map(([key, list]) => (
+            {Object.entries(managedLists).length > 0 && Object.entries(managedLists).map(([key, list]) => (
               <button
                 key={key}
                 onClick={() => setActiveList(key)}
@@ -159,7 +160,8 @@ export const AdminPanel: React.FC = () => {
         </div>
 
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-lg shadow p-6">
+          {managedLists[activeList] && (
+            <div className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold text-gray-900">
                 {managedLists[activeList].name}
@@ -232,6 +234,7 @@ export const AdminPanel: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
         </div>
       </div>
 
