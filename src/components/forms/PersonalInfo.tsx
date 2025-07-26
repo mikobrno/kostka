@@ -18,7 +18,28 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
     titles: [],
     maritalStatuses: [],
     documentTypes: [],
-    banks: []
+    banks: [],
+    citizenships: [
+      'Česká republika',
+      'Slovenská republika', 
+      'Německo',
+      'Rakousko',
+      'Polsko',
+      'Maďarsko',
+      'Ukrajina',
+      'Rusko',
+      'Jiné'
+    ],
+    housingTypes: [
+      'vlastní byt',
+      'vlastní dům',
+      'nájemní byt',
+      'nájemní dům',
+      'družstevní byt',
+      'služební byt',
+      'u rodičů/příbuzných',
+      'jiné'
+    ]
   });
 
   // Načtení admin seznamů ze Supabase
@@ -36,7 +57,9 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
             titles: [],
             maritalStatuses: [],
             documentTypes: [],
-            banks: []
+            banks: [],
+            citizenships: adminLists.citizenships, // Keep default citizenships
+            housingTypes: adminLists.housingTypes  // Keep default housing types
           };
 
           data.forEach(item => {
@@ -52,6 +75,12 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
                 break;
               case 'banks':
                 lists.banks = item.items;
+                break;
+              case 'citizenships':
+                lists.citizenships = item.items;
+                break;
+              case 'housing_types':
+                lists.housingTypes = item.items;
                 break;
             }
           });
@@ -135,6 +164,22 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
+            Rodné příjmení
+          </label>
+          <div className="flex">
+            <input
+              type="text"
+              value={data.maidenName || ''}
+              onChange={(e) => updateField('maidenName', e.target.value)}
+              className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              placeholder="Rodné příjmení (pokud se liší)"
+            />
+            <CopyButton text={data.maidenName || ''} />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Rodinný stav
           </label>
           <div className="flex">
@@ -149,6 +194,44 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
               ))}
             </select>
             <CopyButton text={data.maritalStatus || ''} />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Občanství
+          </label>
+          <div className="flex">
+            <select
+              value={data.citizenship || 'Česká republika'}
+              onChange={(e) => updateField('citizenship', e.target.value)}
+              className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            >
+              <option value="">Vyberte občanství</option>
+              {adminLists.citizenships.map(citizenship => (
+                <option key={citizenship} value={citizenship}>{citizenship}</option>
+              ))}
+            </select>
+            <CopyButton text={data.citizenship || ''} />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Druh současného bydlení
+          </label>
+          <div className="flex">
+            <select
+              value={data.housingType || ''}
+              onChange={(e) => updateField('housingType', e.target.value)}
+              className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            >
+              <option value="">Vyberte druh bydlení</option>
+              {adminLists.housingTypes.map(type => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+            <CopyButton text={data.housingType || ''} />
           </div>
         </div>
       </div>
@@ -545,6 +628,95 @@ export const PersonalInfo: React.FC<PersonalInfoProps> = ({ data, onChange, pref
             children={data.children || []}
             onChange={(children) => updateField('children', children)}
           />
+        )}
+      </div>
+
+      {/* Extra dynamická pole */}
+      <div className="bg-white rounded-lg border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-md font-medium text-gray-900">Extra pole</h4>
+          <button
+            onClick={() => {
+              const newField = {
+                id: Date.now(),
+                label: '',
+                value: ''
+              };
+              const currentFields = data.extraFields || [];
+              updateField('extraFields', [...currentFields, newField]);
+            }}
+            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Přidat pole
+          </button>
+        </div>
+        
+        {(data.extraFields || []).map((field, index) => (
+          <div key={field.id} className="bg-gray-50 rounded-lg p-4 border mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <h5 className="text-sm font-medium text-gray-900">
+                Extra pole #{index + 1}
+              </h5>
+              <button
+                onClick={() => {
+                  const updatedFields = (data.extraFields || []).filter(f => f.id !== field.id);
+                  updateField('extraFields', updatedFields);
+                }}
+                className="text-red-600 hover:text-red-800 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Název pole
+                </label>
+                <input
+                  type="text"
+                  value={field.label || ''}
+                  onChange={(e) => {
+                    const updatedFields = (data.extraFields || []).map(f => 
+                      f.id === field.id ? { ...f, label: e.target.value } : f
+                    );
+                    updateField('extraFields', updatedFields);
+                  }}
+                  className="block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="Např. Poznámka, Speciální požadavek..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Hodnota
+                </label>
+                <div className="flex">
+                  <input
+                    type="text"
+                    value={field.value || ''}
+                    onChange={(e) => {
+                      const updatedFields = (data.extraFields || []).map(f => 
+                        f.id === field.id ? { ...f, value: e.target.value } : f
+                      );
+                      updateField('extraFields', updatedFields);
+                    }}
+                    className="flex-1 block w-full rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder="Zadejte hodnotu..."
+                  />
+                  <CopyButton text={field.value || ''} />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {(!data.extraFields || data.extraFields.length === 0) && (
+          <div className="text-center py-8 text-gray-500">
+            <p>Žádná extra pole nejsou přidána.</p>
+            <p className="text-sm">Klikněte na "Přidat pole" pro vytvoření vlastního pole.</p>
+          </div>
         )}
       </div>
     </div>

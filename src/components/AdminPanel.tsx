@@ -32,6 +32,14 @@ export const AdminPanel: React.FC = () => {
     liabilityTypes: {
       name: 'Typy závazků',
       items: ['hypotéka', 'spotřebitelský úvěr', 'kreditní karta', 'kontokorent', 'leasing']
+    },
+    citizenships: {
+      name: 'Občanství',
+      items: ['Česká republika', 'Slovenská republika', 'Německo', 'Rakousko', 'Polsko', 'Maďarsko', 'Ukrajina', 'Rusko', 'Jiné']
+    },
+    housingTypes: {
+      name: 'Druhy bydlení',
+      items: ['vlastní byt', 'vlastní dům', 'nájemní byt', 'nájemní dům', 'družstevní byt', 'služební byt', 'u rodičů/příbuzných', 'jiné']
     }
   };
 
