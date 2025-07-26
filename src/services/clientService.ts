@@ -66,16 +66,31 @@ export class ClientService {
       }
 
       // Vytvoření zaměstnavatele
-      if (formData.employer && Object.keys(formData.employer).length > 0) {
+      if (formData.applicantEmployer && Object.keys(formData.applicantEmployer).length > 0) {
         const employerData = {
           client_id: client.id,
-          ico: formData.employer.ico || null,
-          company_name: formData.employer.companyName || null,
-          company_address: formData.employer.companyAddress || null,
-          net_income: formData.employer.netIncome ? parseFloat(formData.employer.netIncome) : null,
+          ico: formData.applicantEmployer.ico || null,
+          company_name: formData.applicantEmployer.companyName || null,
+          company_address: formData.applicantEmployer.companyAddress || null,
+          net_income: formData.applicantEmployer.netIncome ? parseFloat(formData.applicantEmployer.netIncome) : null,
+          employer_type: 'applicant'
         }
 
         await supabase.from('employers').insert(employerData)
+      }
+
+      // Vytvoření zaměstnavatele spolužadatele
+      if (formData.coApplicantEmployer && Object.keys(formData.coApplicantEmployer).length > 0) {
+        const coEmployerData = {
+          client_id: client.id,
+          ico: formData.coApplicantEmployer.ico || null,
+          company_name: formData.coApplicantEmployer.companyName || null,
+          company_address: formData.coApplicantEmployer.companyAddress || null,
+          net_income: formData.coApplicantEmployer.netIncome ? parseFloat(formData.coApplicantEmployer.netIncome) : null,
+          employer_type: 'co_applicant'
+        }
+
+        await supabase.from('employers').insert(coEmployerData)
       }
 
       // Vytvoření nemovitosti
@@ -189,15 +204,28 @@ export class ClientService {
       await supabase.from('liabilities').delete().eq('client_id', clientId)
 
       // Znovu vytvoření dat (stejný kód jako v createClient)
-      if (formData.employer && Object.keys(formData.employer).length > 0) {
+      if (formData.applicantEmployer && Object.keys(formData.applicantEmployer).length > 0) {
         const employerData = {
           client_id: clientId,
-          ico: formData.employer.ico || null,
-          company_name: formData.employer.companyName || null,
-          company_address: formData.employer.companyAddress || null,
-          net_income: formData.employer.netIncome ? parseFloat(formData.employer.netIncome) : null,
+          ico: formData.applicantEmployer.ico || null,
+          company_name: formData.applicantEmployer.companyName || null,
+          company_address: formData.applicantEmployer.companyAddress || null,
+          net_income: formData.applicantEmployer.netIncome ? parseFloat(formData.applicantEmployer.netIncome) : null,
+          employer_type: 'applicant'
         }
         await supabase.from('employers').insert(employerData)
+      }
+
+      if (formData.coApplicantEmployer && Object.keys(formData.coApplicantEmployer).length > 0) {
+        const coEmployerData = {
+          client_id: clientId,
+          ico: formData.coApplicantEmployer.ico || null,
+          company_name: formData.coApplicantEmployer.companyName || null,
+          company_address: formData.coApplicantEmployer.companyAddress || null,
+          net_income: formData.coApplicantEmployer.netIncome ? parseFloat(formData.coApplicantEmployer.netIncome) : null,
+          employer_type: 'co_applicant'
+        }
+        await supabase.from('employers').insert(coEmployerData)
       }
 
       if (formData.property && Object.keys(formData.property).length > 0) {

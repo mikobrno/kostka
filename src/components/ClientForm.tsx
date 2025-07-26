@@ -16,7 +16,8 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
   const [formData, setFormData] = useState({
     applicant: {},
     coApplicant: {},
-    employer: {},
+    applicantEmployer: {},
+    coApplicantEmployer: {},
     liabilities: [],
     property: {}
   });
@@ -65,11 +66,17 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
           bank: client.co_applicant_bank || '',
           children: client.children?.filter(c => c.parent_type === 'co_applicant') || []
         },
-        employer: {
+        applicantEmployer: {
           ico: client.employers?.[0]?.ico || '',
           companyName: client.employers?.[0]?.company_name || '',
           companyAddress: client.employers?.[0]?.company_address || '',
           netIncome: client.employers?.[0]?.net_income || ''
+        },
+        coApplicantEmployer: {
+          ico: client.employers?.[1]?.ico || '',
+          companyName: client.employers?.[1]?.company_name || '',
+          companyAddress: client.employers?.[1]?.company_address || '',
+          netIncome: client.employers?.[1]?.net_income || ''
         },
         liabilities: client.liabilities || [],
         property: {
@@ -254,14 +261,26 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
-            Zaměstnavatel
+            Zaměstnavatel žadatele
           </h2>
           <EmployerInfo 
-            data={formData.employer}
-            onChange={(data) => setFormData(prev => ({ ...prev, employer: data }))}
+            data={formData.applicantEmployer}
+            onChange={(data) => setFormData(prev => ({ ...prev, applicantEmployer: data }))}
           />
         </div>
 
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Zaměstnavatel spolužadatele
+          </h2>
+          <EmployerInfo 
+            data={formData.coApplicantEmployer}
+            onChange={(data) => setFormData(prev => ({ ...prev, coApplicantEmployer: data }))}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
             Nemovitost
@@ -449,25 +468,25 @@ const ClientPreview: React.FC<ClientPreviewProps> = ({
         {/* Zaměstnavatel */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
-            Zaměstnavatel
+            Zaměstnavatel žadatele
           </h2>
-          {formData.employer.companyName ? (
+          {formData.applicantEmployer.companyName ? (
             <div className="space-y-4">
               <div>
                 <span className="text-sm font-medium text-gray-500">Název firmy:</span>
-                <p className="text-gray-900">{formData.employer.companyName}</p>
+                <p className="text-gray-900">{formData.applicantEmployer.companyName}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">IČO:</span>
-                <p className="text-gray-900">{formData.employer.ico || 'Neuvedeno'}</p>
+                <p className="text-gray-900">{formData.applicantEmployer.ico || 'Neuvedeno'}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">Adresa:</span>
-                <p className="text-gray-900">{formData.employer.companyAddress || 'Neuvedeno'}</p>
+                <p className="text-gray-900">{formData.applicantEmployer.companyAddress || 'Neuvedeno'}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-500">Čistý příjem:</span>
-                <p className="text-gray-900">{formData.employer.netIncome ? formatPrice(formData.employer.netIncome) : 'Neuvedeno'}</p>
+                <p className="text-gray-900">{formData.applicantEmployer.netIncome ? formatPrice(formData.applicantEmployer.netIncome) : 'Neuvedeno'}</p>
               </div>
             </div>
           ) : (
@@ -475,6 +494,37 @@ const ClientPreview: React.FC<ClientPreviewProps> = ({
           )}
         </div>
 
+        {/* Zaměstnavatel spolužadatele */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
+            Zaměstnavatel spolužadatele
+          </h2>
+          {formData.coApplicantEmployer.companyName ? (
+            <div className="space-y-4">
+              <div>
+                <span className="text-sm font-medium text-gray-500">Název firmy:</span>
+                <p className="text-gray-900">{formData.coApplicantEmployer.companyName}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">IČO:</span>
+                <p className="text-gray-900">{formData.coApplicantEmployer.ico || 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Adresa:</span>
+                <p className="text-gray-900">{formData.coApplicantEmployer.companyAddress || 'Neuvedeno'}</p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-gray-500">Čistý příjem:</span>
+                <p className="text-gray-900">{formData.coApplicantEmployer.netIncome ? formatPrice(formData.coApplicantEmployer.netIncome) : 'Neuvedeno'}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 italic">Zaměstnavatel nebyl zadán</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Nemovitost */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-3">
