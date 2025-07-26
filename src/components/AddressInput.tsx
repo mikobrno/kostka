@@ -20,45 +20,35 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Získání API klíče z proměnných prostředí Vite
-  const MAPY_CZ_API_KEY = import.meta.env.VITE_MAPY_CZ_API_KEY;
-
   const searchAddresses = useCallback(async (query: string) => {
     if (query.length < 3) {
       setSuggestions([]);
       return;
     }
 
-    if (!MAPY_CZ_API_KEY) {
-      console.error('Missing Mapy.cz API key. Please add VITE_MAPY_CZ_API_KEY to your .env file.');
-      return;
-    }
-
     setLoading(true);
     try {
-      // Volání GoogleMaps Suggest API
-      const url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&key=${API_KEY}`;
-   
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // Mock suggestions pro demonstraci - v produkci nahradit skutečným API
+      const mockSuggestions = [
+        `${query}, Praha 1`,
+        `${query}, Praha 2`,
+        `${query}, Brno`,
+        `${query}, Ostrava`,
+        `${query}, Plzeň`
+      ].filter(suggestion => 
+        suggestion.toLowerCase().includes(query.toLowerCase())
+      );
       
-      const data = await response.json();
-      
-      // Zpracování dat a extrakce adres
-      if (data && data.data && Array.isArray(data.data)) {
-        const newSuggestions = data.data.map((item: any) => item.name || item.label);
-        setSuggestions(newSuggestions);
-      } else {
-        setSuggestions([]);
-      }
+      // Simulace API volání
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setSuggestions(mockSuggestions.slice(0, 5));
     } catch (error) {
-      console.error('Chyba při načítání adres z Mapy.cz API:', error);
+      console.error('Chyba při načítání adres:', error);
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  }, [MAPY_CZ_API_KEY]); // Závislost na API klíči
+  }, []); // Odstraněna závislost na API klíči
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
