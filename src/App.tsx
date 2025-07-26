@@ -40,12 +40,18 @@ function App() {
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    setShowClientForm(true);
+    if (tabId === 'newClient') {
+      setShowClientForm(true);
+    } else {
+      setShowClientForm(false);
+      setSelectedClient(null);
+    }
   };
 
   const handleNewClient = () => {
     setSelectedClient(null);
     setShowClientForm(true);
+    setActiveTab('newClient');
   };
 
   const handleCloseClientForm = () => {
@@ -57,7 +63,7 @@ function App() {
   const handleClientSaved = () => {
     setShowClientForm(false);
     setSelectedClient(null);
-    setActiveTab('clientList');
+    // Zůstaneme na aktuální záložce po uložení
   };
 
   const handleClientListRefresh = () => {
@@ -106,7 +112,10 @@ function App() {
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
-                onClick={() => handleTabChange(id)}
+                onClick={() => {
+                  console.log('Tab clicked:', id);
+                  handleTabChange(id);
+                }}
                 className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === id
                     ? 'border-blue-500 text-blue-600'
@@ -122,7 +131,7 @@ function App() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {(showClientForm || activeTab === 'newClient') ? (
+        {showClientForm ? (
           <ClientForm 
             selectedClient={selectedClient} 
             onClientSaved={handleClientSaved}
@@ -130,7 +139,7 @@ function App() {
           />
         ) : (
           <>
-            {activeTab === 'newClient' && !showClientForm && (
+            {activeTab === 'newClient' && (
               <div className="text-center py-12">
                 <div className="max-w-md mx-auto">
                   <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -150,11 +159,11 @@ function App() {
                 </div>
               </div>
             )}
-            {activeTab === 'clientList' && (
+            {activeTab === 'clientList' && !showClientForm && (
               <ClientList onSelectClient={handleSelectClient} />
             )}
-            {activeTab === 'calculator' && <MortgageCalculator />}
-            {activeTab === 'admin' && <AdminPanel />}
+            {activeTab === 'calculator' && !showClientForm && <MortgageCalculator />}
+            {activeTab === 'admin' && !showClientForm && <AdminPanel />}
           </>
         )}
       </main>
