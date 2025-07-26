@@ -101,12 +101,8 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
           interestRate: client.loan?.interest_rate || '',
           insurance: client.loan?.insurance || '',
           propertyValue: client.loan?.property_value || '',
-        applicantEmployer: {},
-        coApplicantEmployer: {},
           monthlyPayment: client.loan?.monthly_payment || ''
-        applicantProperty: {},
-        coApplicantProperty: {},
-        loan: {}
+        }
       });
     }
   }, [selectedClient, currentClient]);
@@ -167,9 +163,12 @@ export const ClientForm: React.FC<ClientFormProps> = ({ selectedClient, onClient
     setFormData({
       applicant: {},
       coApplicant: {},
-      employer: {},
+      applicantEmployer: {},
+      coApplicantEmployer: {},
       liabilities: [],
-      property: {}
+      applicantProperty: {},
+      coApplicantProperty: {},
+      loan: {}
     });
     setShowPreview(false);
   };
