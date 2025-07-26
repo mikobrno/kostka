@@ -1,0 +1,254 @@
+import React, { useState } from 'react';
+import { AdminService } from '../services/adminService';
+import { Plus, Edit, Trash2, Save, Settings, Globe } from 'lucide-react';
+
+export const AdminPanel: React.FC = () => {
+  const [activeList, setActiveList] = useState('titles');
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [newItem, setNewItem] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const lists = {
+    titles: {
+      name: 'Tituly',
+      items: ['Bc.', 'Mgr.', 'Ing.', 'MUDr.', 'JUDr.', 'PhDr.', 'RNDr.', 'Dr.']
+    },
+    maritalStatuses: {
+      name: 'Rodinné stavy',
+      items: ['svobodný/á', 'ženatý/vdaná', 'rozvedený/á', 'vdovec/vdova', 'partnerský svazek']
+    },
+    documentTypes: {
+      name: 'Typy dokladů',
+      items: ['občanský průkaz', 'pas', 'řidičský průkaz']
+    },
+    banks: {
+      name: 'Banky',
+      items: ['Česká spořitelna', 'Komerční banka', 'ČSOB', 'UniCredit Bank', 'Raiffeisenbank']
+    },
+    institutions: {
+      name: 'Instituce (závazky)',
+      items: ['Česká spořitelna', 'Komerční banka', 'ČSOB', 'Cetelem', 'Home Credit']
+    },
+    liabilityTypes: {
+      name: 'Typy závazků',
+      items: ['hypotéka', 'spotřebitelský úvěr', 'kreditní karta', 'kontokorent', 'leasing']
+    }
+  };
+
+  const [managedLists, setManagedLists] = useState(lists);
+
+  // Načtení dat ze Supabase při načtení komponenty
+  React.useEffect(() => {
+    loadAdminData();
+  }, []);
+
+  const loadAdminData = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await AdminService.getAdminLists();
+      if (error) {
+        console.error('Chyba při načítání admin dat:', error);
+        return;
+      }
+
+      if (data) {
+        const updatedLists = { ...lists };
+        data.forEach(item => {
+          if (updatedLists[item.list_type]) {
+            updatedLists[item.list_type].items = item.items;
+          }
+        });
+        setManagedLists(updatedLists);
+      }
+    } catch (error) {
+      console.error('Chyba při načítání admin dat:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addItem = (listKey: string) => {
+    if (!newItem.trim()) return;
+    
+    setManagedLists(prev => ({
+      ...prev,
+      [listKey]: {
+        ...prev[listKey],
+        items: [...prev[listKey].items, newItem.trim()]
+      }
+    }));
+    setNewItem('');
+  };
+
+  const removeItem = (listKey: string, index: number) => {
+    setManagedLists(prev => ({
+      ...prev,
+      [listKey]: {
+        ...prev[listKey],
+        items: prev[listKey].items.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const updateItem = (listKey: string, index: number, value: string) => {
+    setManagedLists(prev => ({
+      ...prev,
+      [listKey]: {
+        ...prev[listKey],
+        items: prev[listKey].items.map((item, i) => i === index ? value : item)
+      }
+    }));
+    setEditingItem(null);
+  };
+
+  const saveAdminList = async (listKey: string) => {
+    setLoading(true);
+    try {
+      const { data, error } = await AdminService.updateAdminList(listKey, managedLists[listKey].items);
+      if (error) {
+        throw new Error(error.message || 'Chyba při ukládání');
+      }
+      alert('Seznam byl úspěšně uložen!');
+    } catch (error) {
+      console.error('Chyba při ukládání:', error);
+      alert(`Chyba při ukládání: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Administrace</h1>
+        <p className="text-lg text-gray-600">Správa dropdown seznamů a nastavení aplikace</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="lg:col-span-1">
+          <nav className="space-y-2">
+            {Object.entries(managedLists).map(([key, list]) => (
+              <button
+                key={key}
+                onClick={() => setActiveList(key)}
+                className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                  activeList === key
+                    ? 'bg-blue-100 text-blue-700 border-l-4 border-blue-500'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {list.name}
+                <span className="float-right text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                  {list.items.length}
+                </span>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="lg:col-span-3">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {managedLists[activeList].name}
+              </h2>
+              <button
+                onClick={() => saveAdminList(activeList)}
+                disabled={loading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? (
+                  <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Save className="w-4 h-4 mr-2" />
+                )}
+                {loading ? 'Ukládám...' : 'Uložit změny'}
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {managedLists[activeList].items.map((item, index) => (
+                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                  {editingItem === `${activeList}-${index}` ? (
+                    <input
+                      type="text"
+                      value={item}
+                      onChange={(e) => updateItem(activeList, index, e.target.value)}
+                      onBlur={() => setEditingItem(null)}
+                      onKeyPress={(e) => e.key === 'Enter' && setEditingItem(null)}
+                      className="flex-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="flex-1 text-gray-900">{item}</span>
+                  )}
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setEditingItem(`${activeList}-${index}`)}
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => removeItem(activeList, index)}
+                      className="text-red-600 hover:text-red-800 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="flex space-x-3 pt-4 border-t">
+                <input
+                  type="text"
+                  value={newItem}
+                  onChange={(e) => setNewItem(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addItem(activeList)}
+                  className="flex-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder={`Přidat novou položku do ${managedLists[activeList].name.toLowerCase()}`}
+                />
+                <button
+                  onClick={() => addItem(activeList)}
+                  disabled={!newItem.trim()}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Přidat
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Informace o Supabase */}
+      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-medium text-blue-900 mb-4">
+          📊 Databáze: Supabase
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+          <div>
+            <strong>Výhody Supabase:</strong>
+            <ul className="mt-2 space-y-1 list-disc list-inside">
+              <li>Realtime synchronizace dat</li>
+              <li>Automatické zálohování</li>
+              <li>Row Level Security (RLS)</li>
+              <li>PostgreSQL databáze</li>
+            </ul>
+          </div>
+          <div>
+            <strong>Bezpečnost:</strong>
+            <ul className="mt-2 space-y-1 list-disc list-inside">
+              <li>Každý uživatel vidí pouze svá data</li>
+              <li>Šifrované připojení (HTTPS)</li>
+              <li>Autentizace pomocí JWT tokenů</li>
+              <li>API rate limiting</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
